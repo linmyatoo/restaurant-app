@@ -4,8 +4,6 @@ import { socket } from '../services/socket';
 const SERVER_URL = 'http://localhost:3001';
 
 function AdminView() {
-  // This state will hold the list of tables and their totals
-  // e.g., [ { tableId: '5', total: 55.00 }, { tableId: '6', total: 20.00 } ]
   const [activeTables, setActiveTables] = useState([]);
 
   useEffect(() => {
@@ -15,28 +13,29 @@ function AdminView() {
     }
     socket.emit('admin:joinRoom');
 
-    // 2. Fetch all active tables on initial load
+    // === THIS IS THE FIX ===
+    // 2. Fetch all active tables from the API on page load
     fetch(`${SERVER_URL}/api/orders/active`)
       .then((res) => res.json())
       .then((data) => {
-        setActiveTables(data);
+        console.log('AdminView: Fetched active tables on load', data);
+        setActiveTables(data); // Populate the state
       })
       .catch((err) => console.error('Error fetching active tables:', err));
+    // === END OF FIX ===
 
     // 3. Listen for REAL-TIME updates
     
     // When a table's bill is updated (new order)
     const onUpdateTable = (data) => {
-      // data = { tableId: '5', total: 75.00 }
+      console.log('AdminView: Received updateTableBill', data);
       setActiveTables((prevTables) => {
         const tableExists = prevTables.some(t => t.tableId === data.tableId);
         if (tableExists) {
-          // Map and update the total for the existing table
           return prevTables.map((table) =>
             table.tableId === data.tableId ? data : table
           );
         } else {
-          // Add the new table to the list
           return [...prevTables, data];
         }
       });
@@ -44,7 +43,7 @@ function AdminView() {
     
     // When a table's bill is cleared
     const onTableCleared = (data) => {
-      // data = { tableId: '5' }
+      console.log('AdminView: Received tableCleared', data);
       setActiveTables((prevTables) =>
         prevTables.filter((table) => table.tableId !== data.tableId)
       );
@@ -59,7 +58,7 @@ function AdminView() {
       socket.off('server:updateTableBill', onUpdateTable);
       socket.off('server:tableCleared', onTableCleared);
     };
-  }, []);
+  }, []); // The empty array [] means this runs once on page load
 
   // 5. Function to send the "clear bill" event
   const handleClearBill = (tableId) => {

@@ -17,6 +17,7 @@ app.use('/public', express.static('public')); // Serve menu photos
 // --- HTTP API Routes ---
 app.get('/', (req, res) => res.send('Server is running!'));
 app.use('/api/menu', require('./api/menu.routes'));
+app.use('/api/orders',require('./api/order.routes'));
 // You would add other routes here (orders, tables)
 
 // --- Setup HTTP Server for Socket.IO ---

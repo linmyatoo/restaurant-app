@@ -2,37 +2,61 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket } from '../services/socket';
 
+const SERVER_URL = 'http://localhost:3001';
+
 function KitchenView() {
   const { kitchenId } = useParams();
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    // 1. Connect if not already connected
+    // 1. Connect and join room
     if (!socket.connected) {
       socket.connect();
     }
-
-    // 2. Join the kitchen room
     socket.emit('kitchen:joinRoom', kitchenId);
     console.log(`KitchenView: Attempting to join room kitchen-${kitchenId}`);
 
-    // 3. Listen for new orders
+    // === THIS IS THE FIX ===
+    // 2. Fetch all pending orders for this kitchen on load
+    fetch(`${SERVER_URL}/api/orders/kitchen/${kitchenId}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log(`KitchenView: Fetched ${data.length} pending orders.`, data);
+        setOrders(data); // Set the initial state
+      })
+      .catch(err => console.error('Error fetching kitchen orders:', err));
+    // === END OF FIX ===
+
+    // 3. Listen for NEW orders
     const onNewOrder = (newOrder) => {
       console.log('KitchenView: Received new order!', newOrder);
-      setOrders((prevOrders) => [newOrder, ...prevOrders]);
+      
+      // This logic merges new items if the order card already exists
+      setOrders((prevOrders) => {
+        const existingOrder = prevOrders.find(o => o.orderId === newOrder.orderId);
+        
+        if (existingOrder) {
+          // Add new items to an existing order card
+          return prevOrders.map(o =>
+            o.orderId === newOrder.orderId
+              ? { ...o, items: [...o.items, ...newOrder.items] }
+              : o
+          );
+        } else {
+          // Add a new order card
+          return [newOrder, ...prevOrders];
+        }
+      });
     };
     
     socket.on('server:newOrder', onNewOrder);
 
-    // 4. Cleanup function (THIS IS THE CHANGED PART)
+    // 4. Cleanup
     return () => {
-      console.log(`KitchenView: Leaving room kitchen-${kitchenId}`);
-      // We are NO LONGER calling socket.disconnect() here.
-      // We just leave the room and remove the listener.
       socket.emit('kitchen:leaveRoom', kitchenId);
       socket.off('server:newOrder', onNewOrder);
     };
-  }, [kitchenId]); // Re-run if kitchenId changes
+  }, [kitchenId]);
 
   const handleMarkReady = (orderId, itemId) => {
     console.log(`KitchenView: Marking item ${itemId} as ready.`);

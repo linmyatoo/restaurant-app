@@ -8,7 +8,7 @@ function Home() {
   return (
     <nav style={{ padding: '20px' }}>
       <h2>Restaurant App</h2>
-      {/* <Link to="/table/5" style={{ marginRight: '10px' }}>
+      <Link to="/table/5" style={{ marginRight: '10px' }}>
         Go to Table 5
       </Link>
       <Link to="/kitchen/1" style={{ marginRight: '10px' }}>
@@ -17,8 +17,7 @@ function Home() {
       <Link to="/kitchen/2" style={{ marginRight: '10px' }}>
         Go to Kitchen 2
       </Link>
-      <Link to="/admin">Go to Admin</Link> */}
-      {/* <-- 2. ADD LINK */}
+      <Link to="/admin">Go to Admin</Link> {/* <-- 2. ADD LINK */}
     </nav>
   );
 }
