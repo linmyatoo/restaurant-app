@@ -16,7 +16,12 @@ cloudinary.config({
 });
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "*", // Allow configured origin or all in development
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "10mb" })); // Middleware to parse JSON
 app.use("/public", express.static("public")); // Serve menu photos (keeps existing behavior)
 // Also expose uploads directly at /uploads so client URLs like '/uploads/xxx.jpg' work
@@ -38,7 +43,9 @@ const httpServer = http.createServer(app);
 // --- Initialize Socket.IO ---
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Allow all origins (for dev)
+    origin: process.env.CLIENT_URL || "*", // Allow configured origin or all in development
+    credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
