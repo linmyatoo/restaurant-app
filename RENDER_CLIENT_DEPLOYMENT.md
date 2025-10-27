@@ -6,7 +6,7 @@ Your React app can be deployed as a **Static Site** on Render, completely free!
 
 ## 🚀 Deployment Steps
 
-### Option 1: Via Render Dashboard (Recommended)
+### Via Render Dashboard (Only Option for Static Sites)
 
 1. **Go to** [dashboard.render.com](https://dashboard.render.com)
 
@@ -16,34 +16,35 @@ Your React app can be deployed as a **Static Site** on Render, completely free!
    - Select your `restaurant-app` repository
    - Click "Connect"
 
-4. **Configure Build Settings**:
+4. **Configure Build Settings** (IMPORTANT - Use these exact values):
    ```
    Name: restaurant-client (or your choice)
-   Branch: main (or vercel branch if you prefer)
+   Branch: main
    Root Directory: client
    Build Command: npm install && npm run build
-   Publish Directory: client/build
+   Publish Directory: build
    ```
+   
+   **Note**: 
+   - Root Directory must be `client` (not blank, not `/client`)
+   - Publish Directory must be `build` (not `./build`, not `client/build`)
 
-5. **Advanced Settings** (Optional):
-   - Add environment variables if needed (currently none required)
-   - Auto-Deploy: Yes (deploy on every push)
+5. **Click "Create Static Site"**
 
-6. **Click "Create Static Site"**
+6. **Wait for Build** (usually 2-3 minutes)
 
-7. **Wait for Build** (usually 2-3 minutes)
+7. **Add Redirects for React Router** (CRITICAL):
+   - After first deployment, go to **Settings → Redirects/Rewrites**
+   - Click "Add Rule"
+   - Enter:
+     ```
+     Source: /*
+     Destination: /index.html
+     Action: Rewrite
+     ```
+   - Click "Save Changes"
 
-8. **Get Your URL**: `https://restaurant-client.onrender.com` (or custom name)
-
-### Option 2: Using render.yaml (Infrastructure as Code)
-
-The `client/render.yaml` file is already configured. To use it:
-
-1. Move `render.yaml` to your repository root (already there)
-2. Go to Render Dashboard
-3. Click "New +" → "Blueprint"
-4. Connect your repository
-5. Render will auto-detect the `render.yaml` and deploy
+8. **Get Your URL**: `https://restaurant-client.onrender.com` (or your custom name)
 
 ## 🔧 Post-Deployment Configuration
 
@@ -61,19 +62,21 @@ After deployment, update your Render backend environment variable:
 
 ## ✨ Configuration Details
 
-### render.yaml Explained
+### Correct Settings Summary
 
-```yaml
-services:
-  - type: web
-    name: restaurant-client
-    env: static                              # Static site
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./build               # Publish the build folder
-    routes:
-      - type: rewrite
-        source: /*                           # All routes
-        destination: /index.html             # Redirect to index.html (SPA)
+**For Static Sites on Render, configure in Dashboard:**
+
+```
+Root Directory: client
+Build Command: npm install && npm run build
+Publish Directory: build
+```
+
+**After deployment, add Redirects:**
+```
+Source: /*
+Destination: /index.html
+Action: Rewrite
 ```
 
 This configuration:
@@ -109,8 +112,11 @@ This configuration:
 
 ### Issue 2: 404 on Page Refresh
 
-**Cause**: Missing rewrite rules
-**Solution**: ✅ Already handled in `render.yaml` with rewrite rules!
+**Cause**: Missing rewrite rules for React Router
+**Solution**: 
+1. Go to Render Dashboard → Your Static Site → Settings → Redirects/Rewrites
+2. Add rule: Source `/*` → Destination `/index.html` → Action: Rewrite
+3. This is REQUIRED for SPAs with client-side routing
 
 ### Issue 3: CORS Errors
 
@@ -122,11 +128,12 @@ This configuration:
 
 ### Issue 4: Blank Page After Deployment
 
-**Cause**: Build output path misconfigured
+**Cause**: Build output path misconfigured or wrong Root Directory
 **Solution**:
-- Verify `Publish Directory` is set to `client/build`
+- Verify `Root Directory` is set to `client` (exactly, no slashes)
+- Verify `Publish Directory` is set to `build` (exactly)
 - Check build logs to ensure build succeeded
-- Verify `build` folder was created
+- Look for any errors in browser console (F12)
 
 ### Issue 5: Static Assets Not Loading
 
@@ -137,9 +144,12 @@ This configuration:
 
 ## 📋 Deployment Checklist
 
-- [x] `render.yaml` configured
-- [x] Build command tested locally
-- [ ] Deploy to Render Static Site
+- [ ] Create Static Site on Render
+- [ ] Set Root Directory to `client`
+- [ ] Set Build Command to `npm install && npm run build`
+- [ ] Set Publish Directory to `build`
+- [ ] Deploy and wait for build to complete
+- [ ] Add Redirect/Rewrite rule: `/*` → `/index.html`
 - [ ] Get Render client URL
 - [ ] Update `CLIENT_URL` on Render backend
 - [ ] Test all routes (/, /customer/1, /login, /admin)
