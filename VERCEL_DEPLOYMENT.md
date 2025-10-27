@@ -9,21 +9,25 @@ Your React app is configured and ready for Vercel deployment.
 ### Option 1: Deploy via Vercel CLI (Fastest)
 
 1. **Install Vercel CLI** (if not already installed):
+
    ```bash
    npm install -g vercel
    ```
 
 2. **Navigate to client folder**:
+
    ```bash
    cd client
    ```
 
 3. **Deploy**:
+
    ```bash
    vercel
    ```
-   
+
    Follow the prompts:
+
    - Set up and deploy? **Y**
    - Which scope? Select your account
    - Link to existing project? **N** (first time)
@@ -43,10 +47,12 @@ Your React app is configured and ready for Vercel deployment.
 2. **Click "Add New Project"**
 
 3. **Import your GitHub repository**:
+
    - Select `restaurant-app` repository
    - Click "Import"
 
 4. **Configure Project**:
+
    - **Framework Preset**: Create React App (auto-detected)
    - **Root Directory**: `client`
    - **Build Command**: `npm run build`
@@ -108,7 +114,8 @@ This ensures all routes (like `/customer/1`, `/admin`, `/login`) work correctly 
 ### Issue 2: CORS Errors
 
 **Cause**: Render backend doesn't allow your Vercel URL
-**Solution**: 
+**Solution**:
+
 1. Update `CLIENT_URL` on Render with your Vercel URL
 2. Wait for Render to redeploy (automatic)
 3. Clear browser cache and reload
@@ -117,6 +124,7 @@ This ensures all routes (like `/customer/1`, `/admin`, `/login`) work correctly 
 
 **Cause**: Dependencies not installed or build errors
 **Solution**:
+
 - Check Vercel build logs
 - Ensure `package.json` has all dependencies
 - Test locally: `npm run build` in the `client` folder
@@ -124,7 +132,8 @@ This ensures all routes (like `/customer/1`, `/admin`, `/login`) work correctly 
 ### Issue 4: Environment Variables Needed
 
 **Cause**: Your app uses `process.env.REACT_APP_*` variables
-**Solution**: 
+**Solution**:
+
 - Currently your app has hardcoded backend URLs (no env vars needed)
 - If you want to use env vars in the future:
   1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
@@ -135,6 +144,7 @@ This ensures all routes (like `/customer/1`, `/admin`, `/login`) work correctly 
 
 **Cause**: CORS or WebSocket connection blocked
 **Solution**:
+
 - Ensure `CLIENT_URL` on Render matches your Vercel URL exactly
 - Check browser console for specific error
 - Verify Render backend is running: visit `https://restaurant-me21.onrender.com`
@@ -179,6 +189,7 @@ Want to use your own domain? In Vercel Dashboard:
 ## 🚀 Automatic Deployments
 
 Once connected to GitHub:
+
 - **Every push to `main`** = Production deployment
 - **Every pull request** = Preview deployment
 - No manual deployment needed!
