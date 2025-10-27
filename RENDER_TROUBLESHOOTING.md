@@ -23,7 +23,8 @@ Build Command: npm install && npm run build
 Publish Directory: build
 ```
 
-**CRITICAL**: 
+**CRITICAL**:
+
 - Don't add any slashes or dots
 - Just type exactly: `client` and `build`
 
@@ -34,6 +35,7 @@ After deployment starts:
 1. Click on your static site
 2. Click "Logs" tab
 3. Look for these SUCCESS messages:
+
    ```
    ==> Installing dependencies
    ==> Running build command: npm install && npm run build
@@ -95,13 +97,14 @@ Tell me your EXACT Render settings so I can help:
 If static site keeps failing, try deploying the build folder directly:
 
 1. Push your local `build` folder to a separate branch:
+
    ```bash
    cd /Users/naylin/workspace/restaurant-app/client
-   
+
    # Temporarily remove build from .gitignore
    git rm --cached .gitignore
    echo "node_modules" > .gitignore
-   
+
    # Add build folder
    git add build
    git commit -m "Add build folder for deployment"

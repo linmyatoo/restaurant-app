@@ -11,6 +11,7 @@ Netlify is more reliable than Render for static sites and has better React Route
 Perfect for testing:
 
 1. Build your app locally:
+
    ```bash
    cd client
    npm run build
@@ -35,6 +36,7 @@ For automatic deployments:
 3. **Connect GitHub**: Select your `restaurant-app` repository
 
 4. **Configure build settings**:
+
    ```
    Base directory: client
    Build command: npm run build
@@ -48,6 +50,7 @@ For automatic deployments:
 ## 🔧 Configuration
 
 ### Netlify Automatically Handles:
+
 - ✅ React Router redirects (no manual configuration needed!)
 - ✅ HTTPS certificate
 - ✅ Global CDN
@@ -72,14 +75,14 @@ This ensures React Router works perfectly:
 
 ## 🎯 Why Netlify Over Render for Static Sites?
 
-| Feature | Netlify | Render |
-|---------|---------|--------|
-| React Router Support | ✅ Automatic | ⚠️ Manual setup |
-| Build Speed | ⚡ Fast | 🐌 Slower |
-| Deploy Reliability | ✅ 99.9% | ⚠️ Sometimes fails |
-| Free Tier | ✅ Generous | ✅ Good |
-| Drag & Drop | ✅ Yes | ❌ No |
-| Preview Deploys | ✅ Yes | ❌ No |
+| Feature              | Netlify      | Render             |
+| -------------------- | ------------ | ------------------ |
+| React Router Support | ✅ Automatic | ⚠️ Manual setup    |
+| Build Speed          | ⚡ Fast      | 🐌 Slower          |
+| Deploy Reliability   | ✅ 99.9%     | ⚠️ Sometimes fails |
+| Free Tier            | ✅ Generous  | ✅ Good            |
+| Drag & Drop          | ✅ Yes       | ❌ No              |
+| Preview Deploys      | ✅ Yes       | ❌ No              |
 
 ## 📋 Deployment Checklist
 
@@ -115,11 +118,13 @@ Update your Render backend:
 ## 🎨 Netlify vs Vercel vs Render
 
 All three work, but for this project:
+
 - **Netlify**: Best for static sites, easiest setup ⭐ **Recommended**
 - **Vercel**: Best for Next.js, also great for React
 - **Render**: Best for full-stack on same platform (both frontend + backend)
 
 Since your backend is on Render, you have two good options:
+
 1. Frontend on Netlify (easier) + Backend on Render
 2. Both on Render (same platform, but more configuration)
 
