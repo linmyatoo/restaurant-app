@@ -105,75 +105,136 @@ function CustomerView() {
   };
 
   return (
-    <div style={{ display: "flex", gap: "40px", padding: "20px" }}>
-      <div>
-        <h2>Menu (Table {tableId})</h2>
-        {/* ... no change to this menu mapping ... */}
-        {menu.map((item) => (
-          <div
-            key={item._id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              margin: "5px",
-              maxWidth: "300px",
-            }}
-          >
-            {item.photoUrl && (
-              <img
-                src={item.photoUrl}
-                alt={item.name}
-                style={{
-                  width: "100%",
-                  height: "150px",
-                  objectFit: "cover",
-                }}
-              />
-            )}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginTop: "10px",
-              }}
-            >
-              <div>
-                <strong>{item.name}</strong>
-                <p style={{ margin: 0 }}>${item.price}</p>
-              </div>
-              <button
-                onClick={() => addToCart(item)}
-                style={{ marginLeft: "10px" }}
-              >
-                +
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
+      {/* Header */}
+      <div className="bg-white shadow-md border-b-4 border-orange-500">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <h1 className="text-3xl font-bold text-gray-800">
+            🍽️ Restaurant Menu
+          </h1>
+          <p className="text-gray-600 mt-1">Table {tableId}</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Menu Section */}
+          <div className="lg:col-span-2">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Our Menu</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {menu.map((item) => (
+                <div
+                  key={item._id}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-1"
+                >
+                  {item.photoUrl && (
+                    <div className="relative h-48 bg-gray-200">
+                      <img
+                        src={item.photoUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        ฿{Math.round(item.price)}
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          {item.name}
+                        </h3>
+                        {!item.photoUrl && (
+                          <p className="text-orange-600 font-semibold mt-1">
+                            ฿{Math.round(item.price)}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="ml-3 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
+                      >
+                        + Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-      <div>
-        <h3>Your Order</h3>
-        {/* ... no change to this cart mapping ... */}
-        <ul>
-          {cart.map((item) => (
-            <li key={item.id}>
-              {item.qty}x {item.name}
-            </li>
-          ))}
-        </ul>
-        <button onClick={handlePlaceOrder} disabled={cart.length === 0}>
-          Place Order
-        </button>
-        <hr />
-        <h3>Bill</h3>
-        <strong>Total: ${bill.toFixed(2)}</strong>
-        <h3>Order Status</h3>
-        <ul>
-          {orderStatus.map((status, i) => (
-            <li key={i}>{status}</li>
-          ))}
-        </ul>
+
+          {/* Order Summary Section */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              {/* Cart */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">
+                  🛒 Your Order
+                </h3>
+                {cart.length === 0 ? (
+                  <p className="text-gray-400 text-center py-4">No items yet</p>
+                ) : (
+                  <ul className="space-y-2 mb-4">
+                    {cart.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex justify-between items-center py-2 border-b border-gray-100"
+                      >
+                        <span className="text-gray-700">
+                          <span className="font-semibold text-orange-600">
+                            {item.qty}x
+                          </span>{" "}
+                          {item.name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  onClick={handlePlaceOrder}
+                  disabled={cart.length === 0}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+                >
+                  Place Order
+                </button>
+              </div>
+
+              {/* Bill */}
+              <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
+                  💰 Bill
+                </h3>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200">
+                  <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                  <p className="text-3xl font-bold text-green-600">
+                    ฿{Math.round(bill)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Order Status */}
+              {orderStatus.length > 0 && (
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">
+                    📋 Order Status
+                  </h3>
+                  <ul className="space-y-2">
+                    {orderStatus.map((status, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start space-x-2 text-sm"
+                      >
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-gray-700">{status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

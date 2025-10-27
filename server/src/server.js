@@ -27,6 +27,7 @@ app.use("/api/upload", require("./api/upload.routes"));
 
 // --- HTTP API Routes ---
 app.get("/", (req, res) => res.send("Server is running!"));
+app.use("/api/auth", require("./api/auth.routes"));
 app.use("/api/menu", require("./api/menu.routes"));
 app.use("/api/orders", require("./api/order.routes"));
 // You would add other routes here (orders, tables)

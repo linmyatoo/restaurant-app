@@ -1,30 +1,50 @@
-const Order = require('../models/Order');
-const mongoose = require('mongoose'); // Make sure this is imported
+const Order = require("../models/Order");
+const mongoose = require("mongoose"); // Make sure this is imported
 
 // This function is for your ADMIN page
 exports.getActiveOrders = async (req, res) => {
   try {
-    const activeOrders = await Order.aggregate([
-      { $match: { isPaid: false } },
-      {
-        $group: {
-          _id: '$tableId',
-          total: { $sum: '$total' },
-        },
-      },
-      { $sort: { _id: 1 } },
-      {
-        $project: {
-          tableId: '$_id',
-          total: 1,
-          _id: 0,
-        },
-      },
-    ]);
+    // First get unpaid orders with populated menu items
+    const orders = await Order.find({ isPaid: false })
+      .populate("items.menuItem", "name price")
+      .lean();
+
+    // Group by table and calculate totals
+    const tableMap = {};
+    orders.forEach((order) => {
+      if (!tableMap[order.tableId]) {
+        tableMap[order.tableId] = {
+          tableId: order.tableId,
+          total: 0,
+          orders: [],
+        };
+      }
+
+      // Transform items to include name and price from populated menuItem
+      const transformedOrder = {
+        ...order,
+        items: order.items.map((item) => ({
+          _id: item._id,
+          name: item.menuItem?.name || "Unknown",
+          price: item.menuItem?.price || 0,
+          qty: item.qty,
+          status: item.status,
+        })),
+      };
+
+      tableMap[order.tableId].orders.push(transformedOrder);
+      tableMap[order.tableId].total += order.total;
+    });
+
+    // Convert to array and sort
+    const activeOrders = Object.values(tableMap).sort(
+      (a, b) => parseInt(a.tableId) - parseInt(b.tableId)
+    );
+
     res.json(activeOrders);
   } catch (err) {
-    console.error('Error fetching active orders:', err);
-    res.status(500).send('Server Error');
+    console.error("Error fetching active orders:", err);
+    res.status(500).send("Server Error");
   }
 };
 
@@ -34,65 +54,68 @@ exports.getKitchenOrders = async (req, res) => {
   try {
     const kitchenId = parseInt(req.params.kitchenId, 10);
     if (![1, 2].includes(kitchenId)) {
-      return res.status(400).json({ msg: 'Invalid Kitchen ID' });
+      return res.status(400).json({ msg: "Invalid Kitchen ID" });
     }
 
     const orders = await Order.aggregate([
       // 1. Find all unpaid orders
       { $match: { isPaid: false } },
-      
+
       // 2. Deconstruct the 'items' array
-      { $unwind: '$items' },
-      
+      { $unwind: "$items" },
+
       // 3. Filter for 'pending' items only
-      { $match: { 'items.status': 'pending' } },
-      
+      { $match: { "items.status": "pending" } },
+
       // 4. Look up the menu item details
       {
         $lookup: {
-          from: 'menus', // The collection name for 'Menu' model
-          localField: 'items.menuItem',
-          foreignField: '_id',
-          as: 'menuItemDetails'
-        }
+          from: "menus", // The collection name for 'Menu' model
+          localField: "items.menuItem",
+          foreignField: "_id",
+          as: "menuItemDetails",
+        },
       },
-      
+
       // 5. Deconstruct the lookup results
-      { $unwind: '$menuItemDetails' },
-      
+      { $unwind: "$menuItemDetails" },
+
       // 6. Filter by the requested kitchen_id
-      { $match: { 'menuItemDetails.kitchen_id': kitchenId } },
-      
+      { $match: { "menuItemDetails.kitchen_id": kitchenId } },
+
       // 7. Group the items back together by order
       {
         $group: {
-          _id: '$_id', // Group by Order ID
-          tableId: { $first: '$tableId' },
+          _id: "$_id", // Group by Order ID
+          tableId: { $first: "$tableId" },
           items: {
             $push: {
-              _id: '$items._id',
-              name: '$menuItemDetails.name',
-              qty: '$items.qty'
-            }
-          }
-        }
+              _id: "$items._id",
+              name: "$menuItemDetails.name",
+              qty: "$items.qty",
+            },
+          },
+        },
       },
-      
+
       // 8. Clean up the output
       {
         $project: {
           _id: 0,
-          orderId: '$_id',
+          orderId: "$_id",
           tableId: 1,
-          items: 1
-        }
+          items: 1,
+        },
       },
-      { $sort: { tableId: 1 } }
+      { $sort: { tableId: 1 } },
     ]);
-    
+
     res.json(orders);
   } catch (err) {
-    console.error(`Error fetching orders for kitchen ${req.params.kitchenId}:`, err);
-    res.status(500).send('Server Error');
+    console.error(
+      `Error fetching orders for kitchen ${req.params.kitchenId}:`,
+      err
+    );
+    res.status(500).send("Server Error");
   }
 };
