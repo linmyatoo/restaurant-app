@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 
-const SERVER_URL = "https://restaurant-me21.onrender.com";
+const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
 function ProtectedRoute({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(null); // null = checking, true = authenticated, false = not authenticated

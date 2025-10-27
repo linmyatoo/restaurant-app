@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 import MobileNav from "../components/MobileNav";
 
-const SERVER_URL = "https://restaurant-me21.onrender.com";
+const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
 function MenuPage() {
   const { tableId } = useParams();

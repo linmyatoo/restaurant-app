@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SERVER_URL = "https://restaurant-me21.onrender.com";
+const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+
+// Debug: Log the URL being used
+console.log("🔐 Login API URL:", SERVER_URL);
+console.log("📝 Environment variable:", process.env.REACT_APP_API_URL);
 
 function LoginPage() {
   const [username, setUsername] = useState("");
