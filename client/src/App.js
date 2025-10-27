@@ -13,6 +13,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Root path - redirect to login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Login Route */}
         <Route path="/login" element={<LoginPage />} />
 
