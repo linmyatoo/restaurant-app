@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 
-const SERVER_URL = "http://localhost:3001";
+const SERVER_URL = "https://restaurant-me21.onrender.com";
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
