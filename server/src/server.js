@@ -18,7 +18,7 @@ cloudinary.config({
 const app = express();
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*", // Allow configured origin or all in development
+    origin: "*", // Allow configured origin or all in development
     credentials: true,
   })
 );
