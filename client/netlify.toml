@@ -1,0 +1,22 @@
+[build]
+  # Directory where the build command runs
+  base = "client"
+  
+  # Build command
+  command = "npm run build"
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "build"
+  
+  # Serverless functions directory
+  functions = "functions"
+
+# Redirect rules for SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Environment variables (optional - set in Netlify UI instead)
+# [build.environment]
+#   REACT_APP_API_URL = "https://restaurant-ycyh.onrender.com"

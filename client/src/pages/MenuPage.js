@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { socket } from "../services/socket";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import MobileNav from "../components/MobileNav";
+import { socket } from "../services/socket";
 
 const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
@@ -20,8 +20,8 @@ function MenuPage() {
     }
     socket.emit("customer:joinTable", tableId);
 
-    setLoading(true);
-    fetch(`${SERVER_URL}/api/menu`)
+    // Fetch only active (non-suspended) menu items for customers
+    fetch(`${SERVER_URL}/api/menu/active`)
       .then((res) => res.json())
       .then((data) => {
         setMenu(data);
@@ -42,34 +42,26 @@ function MenuPage() {
       const existingItem = prevCart.find(
         (cartItem) => cartItem.id === item._id
       );
+
+      let updatedCart;
       if (existingItem) {
-        return prevCart.map((cartItem) =>
+        updatedCart = prevCart.map((cartItem) =>
           cartItem.id === item._id
             ? { ...cartItem, qty: cartItem.qty + 1 }
             : cartItem
         );
       } else {
-        return [
+        updatedCart = [
           ...prevCart,
           { id: item._id, name: item.name, qty: 1, price: item.price },
         ];
       }
-    });
 
-    // Store cart in sessionStorage for persistence
-    const updatedCart = [...cart];
-    const existingItemIndex = updatedCart.findIndex((c) => c.id === item._id);
-    if (existingItemIndex >= 0) {
-      updatedCart[existingItemIndex].qty++;
-    } else {
-      updatedCart.push({
-        id: item._id,
-        name: item.name,
-        qty: 1,
-        price: item.price,
-      });
-    }
-    sessionStorage.setItem(`cart_${tableId}`, JSON.stringify(updatedCart));
+      // Store cart in sessionStorage for persistence
+      sessionStorage.setItem(`cart_${tableId}`, JSON.stringify(updatedCart));
+
+      return updatedCart;
+    });
   };
 
   // Load cart from sessionStorage on mount

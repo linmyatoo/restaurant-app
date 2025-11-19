@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../services/socket";
 
@@ -10,14 +10,28 @@ function CustomerView() {
   const [cart, setCart] = useState([]);
   const [bill, setBill] = useState(0);
   const [orderStatus, setOrderStatus] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // --- NEW: Helper function to reset the table ---
   const resetTable = () => {
     setCart([]);
     setBill(0);
     setOrderStatus([]);
+    setBillItems([]); // Clear bill items too
     alert("Thank you for your payment! Your table has been cleared.");
+  };
+
+  // NEW: Function to fetch existing orders for this table
+  const fetchTableOrders = async () => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/orders/table/${tableId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setBill(data.total);
+        setBillItems(data.items);
+      }
+    } catch (err) {
+      console.error("Error fetching table orders:", err);
+    }
   };
 
   useEffect(() => {
@@ -28,7 +42,6 @@ function CustomerView() {
     }
     socket.emit("customer:joinTable", tableId);
 
-    setLoading(true);
     fetch(`${SERVER_URL}/api/menu`)
       .then((res) => res.json())
       .then((data) => {
@@ -40,11 +53,16 @@ function CustomerView() {
         setLoading(false);
       });
 
+    // NEW: Fetch existing orders for this table on page load
+    fetchTableOrders();
+
     // --- UPDATED: Listen for events ---
 
     // 1. (NEW) This sets the bill total from the server
     const onUpdateBill = (data) => {
       setBill(data.total);
+      // Refresh the bill items when bill updates
+      fetchTableOrders();
     };
 
     // 2. (RENAMED) This just confirms an order went through
@@ -228,8 +246,42 @@ function CustomerView() {
                 <h3 className="text-xl font-bold text-gray-800 mb-3">
                   💰 Bill
                 </h3>
+
+                {/* Bill Items Details */}
+                {billItems.length > 0 && (
+                  <div className="mb-4 max-h-64 overflow-y-auto">
+                    <div className="space-y-2 mb-4">
+                      {billItems.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-2 flex-1">
+                            <span className="bg-green-500 text-white font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                              {item.qty}
+                            </span>
+                            <span className="text-gray-800 font-medium text-sm">
+                              {item.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-gray-500 text-xs">
+                              ฿{Math.round(item.price)} × {item.qty}
+                            </span>
+                            <span className="text-green-600 font-bold text-sm">
+                              ฿{Math.round(item.price * item.qty)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {billItems.length > 0 ? "Grand Total" : "Total Amount"}
+                  </p>
                   <p className="text-3xl font-bold text-green-600">
                     ฿{Math.round(bill)}
                   </p>

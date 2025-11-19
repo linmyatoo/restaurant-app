@@ -9,6 +9,26 @@ exports.getMenu = async (req, res) => {
   }
 };
 
+// Get all menu items (admin - includes suspended)
+exports.getAllMenuItems = async (req, res) => {
+  try {
+    const menu = await Menu.find();
+    res.json(menu);
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
+};
+
+// Get active menu items only (for customers)
+exports.getActiveMenu = async (req, res) => {
+  try {
+    const menu = await Menu.find({ suspended: false });
+    res.json(menu);
+  } catch (err) {
+    res.status(500).send("Server Error");
+  }
+};
+
 // Create a new menu item
 exports.createMenuItem = async (req, res) => {
   const { name, price, kitchen_id, photoUrl } = req.body;
@@ -28,6 +48,44 @@ exports.createMenuItem = async (req, res) => {
     });
 
     const item = await newItem.save();
+    res.json(item);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// Suspend a menu item
+exports.suspendMenuItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Menu.findByIdAndUpdate(
+      id,
+      { suspended: true },
+      { new: true }
+    );
+    if (!item) {
+      return res.status(404).send("Menu item not found");
+    }
+    res.json(item);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+// Unsuspend a menu item
+exports.unsuspendMenuItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await Menu.findByIdAndUpdate(
+      id,
+      { suspended: false },
+      { new: true }
+    );
+    if (!item) {
+      return res.status(404).send("Menu item not found");
+    }
     res.json(item);
   } catch (err) {
     console.error(err.message);

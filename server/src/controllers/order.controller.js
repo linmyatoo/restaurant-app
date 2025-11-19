@@ -119,3 +119,41 @@ exports.getKitchenOrders = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+// Get orders for a specific table (for customer view)
+exports.getTableOrders = async (req, res) => {
+  try {
+    const { tableId } = req.params;
+    
+    // Get all unpaid orders for this table
+    const orders = await Order.find({ tableId, isPaid: false })
+      .populate("items.menuItem", "name price")
+      .lean();
+
+    // Calculate grand total and format items
+    let grandTotal = 0;
+    const allItems = [];
+
+    orders.forEach((order) => {
+      grandTotal += order.total;
+      order.items.forEach((item) => {
+        allItems.push({
+          id: item.menuItem?._id,
+          name: item.menuItem?.name || "Unknown",
+          price: item.menuItem?.price || 0,
+          qty: item.qty,
+          status: item.status,
+        });
+      });
+    });
+
+    res.json({
+      tableId,
+      items: allItems,
+      total: grandTotal,
+    });
+  } catch (err) {
+    console.error(`Error fetching orders for table ${req.params.tableId}:`, err);
+    res.status(500).send("Server Error");
+  }
+};

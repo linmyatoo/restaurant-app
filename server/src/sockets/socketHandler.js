@@ -15,6 +15,34 @@ const getGrandTotal = async (tableId) => {
   return grandTotal;
 };
 
+// === NEW: Helper Function to Get Full Table Data ===
+const getTableData = async (tableId) => {
+  const orders = await Order.find({ tableId, isPaid: false })
+    .populate('items.menuItem', 'name price')
+    .lean();
+
+  let total = 0;
+  const formattedOrders = orders.map((order) => {
+    total += order.total;
+    return {
+      _id: order._id,
+      items: order.items.map((item) => ({
+        _id: item._id,
+        name: item.menuItem?.name || 'Unknown',
+        price: item.menuItem?.price || 0,
+        qty: item.qty,
+        status: item.status,
+      })),
+    };
+  });
+
+  return {
+    tableId,
+    total,
+    orders: formattedOrders,
+  };
+};
+
 function initializeSocket(io) {
   io.on('connection', (socket) => {
     console.log(`[Socket] User connected: ${socket.id}`);
@@ -66,17 +94,15 @@ function initializeSocket(io) {
         await newOrder.save();
         
         // --- THIS IS THE PRICE FIX ---
-        // 1. Now, calculate the new GRAND TOTAL
+        // 1. Now, calculate the new GRAND TOTAL and get full table data
         const grandTotal = await getGrandTotal(tableId);
+        const tableData = await getTableData(tableId);
 
         // 2. Send updated total to the customer
         io.to(tableId).emit('server:updateBill', { total: grandTotal });
 
-        // 3. Send updated total to the admin
-        io.to('admin-room').emit('server:updateTableBill', {
-          tableId: tableId,
-          total: grandTotal,
-        });
+        // 3. Send updated table data (with items) to the admin
+        io.to('admin-room').emit('server:updateTableBill', tableData);
         // --- END PRICE FIX ---
 
         // Send order to kitchens (no change here)
