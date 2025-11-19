@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "../services/socket";
 
@@ -80,7 +80,6 @@ function CustomerView() {
   }, [tableId]);
 
   const addToCart = (item) => {
-    // ... no change to this function
     setCart((prevCart) => {
       const existingItem = prevCart.find(
         (cartItem) => cartItem.id === item._id
@@ -92,7 +91,15 @@ function CustomerView() {
             : cartItem
         );
       } else {
-        return [...prevCart, { id: item._id, name: item.name, qty: 1 }];
+        return [
+          ...prevCart,
+          { 
+            id: item._id, 
+            name: item.name, 
+            price: item.price,
+            qty: 1 
+          }
+        ];
       }
     });
   };
@@ -110,7 +117,7 @@ function CustomerView() {
       <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-3xl font-bold text-gray-800">
-            🍽️ Restaurant Menu
+            🍽️ Eaint Restaurant Menu
           </h1>
           <p className="text-gray-600 mt-1">Table {tableId}</p>
         </div>

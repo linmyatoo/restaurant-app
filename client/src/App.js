@@ -1,13 +1,13 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import CustomerView from "./pages/CustomerView";
-import MenuPage from "./pages/MenuPage";
-import CartPage from "./pages/CartPage";
-import KitchenView from "./pages/KitchenView";
-import AdminView from "./pages/AdminView";
-import CreateMenuPage from "./pages/CreateMenuPage";
-import LoginPage from "./pages/LoginPage";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminView from "./pages/AdminView";
+import CartPage from "./pages/CartPage";
+import CreateMenuPage from "./pages/CreateMenuPage";
+import CustomerView from "./pages/CustomerView";
+import KitchenView from "./pages/KitchenView";
+import LoginPage from "./pages/LoginPage";
+import MenuPage from "./pages/MenuPage";
+import SuspendMenuPage from "./pages/SuspendMenuPage";
 
 function App() {
   return (
@@ -48,6 +48,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateMenuPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/suspend-menu"
+          element={
+            <ProtectedRoute>
+              <SuspendMenuPage />
             </ProtectedRoute>
           }
         />
