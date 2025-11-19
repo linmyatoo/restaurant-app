@@ -1,14 +1,1 @@
-# Restaurant App
-
-## 🚀 Live Deployment
-
-- **Frontend:** https://restaurant-eaint.netlify.app/
-- **Backend API:** https://restaurant-ycyh.onrender.com
-
-**Deployed on:** October 28, 2025  
-**Last Updated:** November 19, 2025
-
-### Login Credentials
-
-- Username: `admin`
-- Password: `admin123`
+# restaurant-app# Deployed Tue Oct 28 11:47:02 +07 2025

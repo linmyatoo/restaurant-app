@@ -15,24 +15,20 @@ const getGrandTotal = async (tableId) => {
   return grandTotal;
 };
 
-// === Helper Function to Get Full Table Data ===
+// === NEW: Helper Function to Get Full Table Data ===
 const getTableData = async (tableId) => {
   const orders = await Order.find({ tableId, isPaid: false })
-    .populate("items.menuItem", "name price")
+    .populate('items.menuItem', 'name price')
     .lean();
 
-  if (!orders || orders.length === 0) {
-    return null;
-  }
-
   let total = 0;
-  const transformedOrders = orders.map((order) => {
+  const formattedOrders = orders.map((order) => {
     total += order.total;
     return {
-      ...order,
+      _id: order._id,
       items: order.items.map((item) => ({
         _id: item._id,
-        name: item.menuItem?.name || "Unknown",
+        name: item.menuItem?.name || 'Unknown',
         price: item.menuItem?.price || 0,
         qty: item.qty,
         status: item.status,
@@ -43,7 +39,7 @@ const getTableData = async (tableId) => {
   return {
     tableId,
     total,
-    orders: transformedOrders,
+    orders: formattedOrders,
   };
 };
 
@@ -98,17 +94,15 @@ function initializeSocket(io) {
         await newOrder.save();
         
         // --- THIS IS THE PRICE FIX ---
-        // 1. Now, calculate the new GRAND TOTAL
+        // 1. Now, calculate the new GRAND TOTAL and get full table data
         const grandTotal = await getGrandTotal(tableId);
+        const tableData = await getTableData(tableId);
 
         // 2. Send updated total to the customer
         io.to(tableId).emit('server:updateBill', { total: grandTotal });
 
-        // 3. Send full table data to the admin
-        const tableData = await getTableData(tableId);
-        if (tableData) {
-          io.to('admin-room').emit('server:updateTableBill', tableData);
-        }
+        // 3. Send updated table data (with items) to the admin
+        io.to('admin-room').emit('server:updateTableBill', tableData);
         // --- END PRICE FIX ---
 
         // Send order to kitchens (no change here)

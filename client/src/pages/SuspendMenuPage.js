@@ -16,19 +16,19 @@ function SuspendMenuPage() {
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchMenuItems();
+    fetchAllMenuItems();
   }, []);
 
-  const fetchMenuItems = async () => {
+  const fetchAllMenuItems = async () => {
     try {
       const res = await fetch(`${SERVER_URL}/api/menu/all`, {
         headers: getAuthHeaders(),
       });
 
       if (res.status === 401 || res.status === 403) {
+        // Unauthorized, redirect to login
         localStorage.removeItem("adminToken");
         navigate("/login");
         return;
@@ -39,61 +39,52 @@ function SuspendMenuPage() {
       setLoading(false);
     } catch (err) {
       console.error("Error fetching menu items:", err);
-      setError("Failed to load menu items");
       setLoading(false);
     }
   };
 
-  const handleToggleSuspend = async (itemId, currentStatus) => {
+  const handleSuspend = async (itemId) => {
     try {
       const res = await fetch(`${SERVER_URL}/api/menu/${itemId}/suspend`, {
         method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ isSuspended: !currentStatus }),
       });
 
       if (res.ok) {
-        // Update local state
+        // Update the local state
         setMenuItems((prevItems) =>
           prevItems.map((item) =>
-            item._id === itemId
-              ? { ...item, isSuspended: !currentStatus }
-              : item
+            item._id === itemId ? { ...item, suspended: true } : item
           )
         );
-      } else {
-        alert("Failed to update item status");
       }
     } catch (err) {
-      console.error("Error toggling suspend:", err);
-      alert("Failed to update item status");
+      console.error("Error suspending item:", err);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-gray-600 text-lg">Loading menu items...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleUnsuspend = async (itemId) => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/menu/${itemId}/unsuspend`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+      });
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <p className="text-red-600 text-lg">{error}</p>
-        </div>
-      </div>
-    );
-  }
+      if (res.ok) {
+        // Update the local state
+        setMenuItems((prevItems) =>
+          prevItems.map((item) =>
+            item._id === itemId ? { ...item, suspended: false } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error unsuspending item:", err);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
       {/* Header */}
       <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -123,77 +114,90 @@ function SuspendMenuPage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span>Back to Dashboard</span>
+              <span>Back to Admin</span>
             </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {menuItems.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <div className="text-6xl mb-4">📋</div>
-            <p className="text-gray-500 text-lg">No menu items found</p>
-            <button
-              onClick={() => navigate("/admin/create-menu")}
-              className="mt-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg"
-            >
-              Create First Item
-            </button>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⏳</div>
+            <p className="text-gray-600 text-lg">Loading menu items...</p>
+          </div>
+        ) : menuItems.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📭</div>
+            <p className="text-gray-400 text-lg">No menu items found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {menuItems.map((item) => (
               <div
                 key={item._id}
-                className={`rounded-xl p-6 shadow-md hover:shadow-lg transition-all ${
-                  item.isSuspended
-                    ? "bg-gray-100 border-2 border-red-300"
-                    : "bg-white border-2 border-green-300"
+                className={`rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl ${
+                  item.suspended
+                    ? "bg-gradient-to-br from-gray-100 to-gray-200 opacity-75"
+                    : "bg-gradient-to-br from-white to-gray-50"
                 }`}
               >
-                {/* Item Image */}
-                <div className="relative mb-4">
-                  <img
-                    src={item.photo || "/placeholder.jpg"}
-                    alt={item.name}
-                    className={`w-full h-48 object-cover rounded-lg ${
-                      item.isSuspended ? "opacity-50 grayscale" : ""
-                    }`}
-                  />
-                  {item.isSuspended && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      SUSPENDED
+                {/* Image */}
+                <div className="relative h-48 bg-gradient-to-br from-orange-400 to-red-500 overflow-hidden">
+                  {item.photoUrl ? (
+                    <img
+                      src={item.photoUrl}
+                      alt={item.name}
+                      className={`w-full h-full object-cover ${
+                        item.suspended ? "grayscale" : ""
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <span className="text-white text-6xl">🍽️</span>
                     </div>
                   )}
+                  {item.suspended && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <div className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-lg">
+                        SUSPENDED
+                      </div>
+                    </div>
+                  )}
+                  {/* Kitchen Badge */}
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-white text-gray-800 px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                      Kitchen {item.kitchen_id}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Item Details */}
-                <div className="mb-4">
+                <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">
                     {item.name}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                    {item.description}
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">
-                    ฿{Math.round(item.price)}
-                  </p>
-                </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-2xl font-bold text-orange-600">
+                      ฿{Math.round(item.price)}
+                    </p>
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        item.suspended
+                          ? "bg-red-100 text-red-600"
+                          : "bg-green-100 text-green-600"
+                      }`}
+                    >
+                      {item.suspended ? "Suspended" : "Active"}
+                    </div>
+                  </div>
 
-                {/* Suspend/Unsuspend Button */}
-                <button
-                  onClick={() =>
-                    handleToggleSuspend(item._id, item.isSuspended)
-                  }
-                  className={`w-full font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 ${
-                    item.isSuspended
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
-                      : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
-                  }`}
-                >
-                  {item.isSuspended ? (
-                    <>
+                  {/* Action Button */}
+                  {item.suspended ? (
+                    <button
+                      onClick={() => handleUnsuspend(item._id)}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                    >
                       <svg
                         className="w-5 h-5"
                         fill="none"
@@ -207,10 +211,13 @@ function SuspendMenuPage() {
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <span>Unsuspend Item</span>
-                    </>
+                      <span>Activate Item</span>
+                    </button>
                   ) : (
-                    <>
+                    <button
+                      onClick={() => handleSuspend(item._id)}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                    >
                       <svg
                         className="w-5 h-5"
                         fill="none"
@@ -225,9 +232,9 @@ function SuspendMenuPage() {
                         />
                       </svg>
                       <span>Suspend Item</span>
-                    </>
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
             ))}
           </div>

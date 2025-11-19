@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import MobileNav from "../components/MobileNav";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
-
-const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+import MobileNav from "../components/MobileNav";
 
 function CartPage() {
   const { tableId } = useParams();
@@ -22,26 +20,8 @@ function CartPage() {
     alert("Thank you for your payment! Your table has been cleared.");
   };
 
-  // Fetch existing orders for this table on mount
-  const fetchTableOrders = async () => {
-    try {
-      const res = await fetch(`${SERVER_URL}/api/orders/table/${tableId}`);
-      const data = await res.json();
-      
-      if (data.total > 0) {
-        setBill(data.total);
-        setOrderedItems(data.items);
-      }
-    } catch (err) {
-      console.error("Error fetching table orders:", err);
-    }
-  };
-
   useEffect(() => {
     if (!tableId) return;
-
-    // Fetch existing orders on page load
-    fetchTableOrders();
 
     if (!socket.connected) {
       socket.connect();
@@ -56,8 +36,6 @@ function CartPage() {
 
     const onUpdateBill = (data) => {
       setBill(data.total);
-      // Refresh ordered items when bill updates
-      fetchTableOrders();
     };
 
     const onOrderStatusUpdate = (data) => {
@@ -97,11 +75,10 @@ function CartPage() {
 
   const handlePlaceOrder = () => {
     if (cart.length === 0) return;
+    setOrderedItems([...cart]); // Save ordered items before clearing cart
     socket.emit("customer:placeOrder", { tableId, items: cart });
     setCart([]);
     sessionStorage.removeItem(`cart_${tableId}`);
-    // Fetch updated orders after placing order
-    setTimeout(() => fetchTableOrders(), 500);
   };
 
   const removeFromCart = (itemId) => {

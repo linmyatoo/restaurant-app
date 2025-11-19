@@ -9,7 +9,7 @@ const menuSchema = new mongoose.Schema({
     required: true,
     enum: [1, 2], // Enforces that it can only be Kitchen 1 or 2
   },
-  isSuspended: { type: Boolean, default: false }, // New field for suspension status
+  suspended: { type: Boolean, default: false }, // Added for suspend functionality
 });
 
 module.exports = mongoose.model('Menu', menuSchema);

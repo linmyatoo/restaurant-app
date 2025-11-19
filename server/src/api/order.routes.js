@@ -6,7 +6,7 @@ const { adminAuth } = require("../middleware/auth");
 // GET /api/orders/active (for Admin) - Protected route
 router.get("/active", adminAuth, orderController.getActiveOrders);
 
-// GET /api/orders/table/:tableId (for Customer) - Public route
+// GET /api/orders/table/:tableId (for Customer view) - Public route
 router.get("/table/:tableId", orderController.getTableOrders);
 
 // === ADD THIS NEW LINE ===

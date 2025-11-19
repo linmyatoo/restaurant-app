@@ -100,45 +100,32 @@ function AdminView() {
 
   // 6. Function to print receipt
   const handlePrintReceipt = (table) => {
-    const printWindow = window.open('', '_blank');
-    
-    const receiptHTML = `
+    const printWindow = window.open("", "_blank");
+    const currentDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
           <title>Receipt - Table ${table.tableId}</title>
           <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-            html, body {
-              width: 100%;
-              height: 100%;
-              margin: 0;
-              padding: 0;
-            }
             body {
               font-family: 'Courier New', monospace;
-              padding: 10px;
-              font-size: 14px;
-              line-height: 1.5;
-            }
-            .receipt-container {
-              width: 100%;
-              max-width: 80mm;
-              margin: 0 auto;
+              max-width: 300px;
+              margin: 20px auto;
+              padding: 20px;
             }
             .header {
               text-align: center;
               border-bottom: 2px dashed #000;
               padding-bottom: 10px;
-              margin-bottom: 12px;
+              margin-bottom: 15px;
             }
             .restaurant-name {
               font-size: 20px;
@@ -146,132 +133,109 @@ function AdminView() {
               margin-bottom: 5px;
             }
             .date {
-              font-size: 11px;
+              font-size: 12px;
               margin-top: 5px;
             }
             .table-info {
-              font-size: 16px;
-              margin: 10px 0;
-              font-weight: bold;
               text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              margin: 15px 0;
             }
             .items {
-              margin: 10px 0;
+              margin: 15px 0;
             }
             .item {
-              margin: 6px 0;
-              font-size: 13px;
-            }
-            .item-row {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 3px;
+              margin: 8px 0;
+              font-size: 14px;
             }
             .item-name {
               flex: 1;
             }
+            .item-qty {
+              margin: 0 10px;
+            }
             .item-price {
               text-align: right;
-              white-space: nowrap;
-              margin-left: 10px;
-              font-weight: bold;
-            }
-            .item-detail {
-              font-size: 11px;
-              color: #444;
-              margin-left: 5px;
+              min-width: 60px;
             }
             .separator {
               border-top: 1px dashed #000;
               margin: 10px 0;
-            }
-            .total-section {
-              border-top: 2px solid #000;
-              padding-top: 10px;
-              margin-top: 12px;
             }
             .total {
               display: flex;
               justify-content: space-between;
               font-size: 18px;
               font-weight: bold;
-              margin: 8px 0;
+              margin-top: 15px;
+              padding-top: 10px;
+              border-top: 2px solid #000;
             }
             .footer {
               text-align: center;
               margin-top: 20px;
+              padding-top: 15px;
               border-top: 2px dashed #000;
-              padding-top: 10px;
               font-size: 12px;
             }
             @media print {
-              html, body {
-                width: 80mm;
-                height: auto;
-              }
-              .receipt-container {
-                width: 100%;
+              body {
+                margin: 0;
+                padding: 10px;
               }
             }
           </style>
         </head>
         <body>
-          <div class="receipt-container">
-            <div class="header">
-              <div class="restaurant-name">RESTAURANT</div>
-              <div class="date">${new Date().toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: '2-digit', 
-                day: '2-digit', 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false
-              })}</div>
-            </div>
-            
-            <div class="table-info">TABLE ${table.tableId}</div>
-            
-            <div class="separator"></div>
-            
-            <div class="items">
-              ${table.orders?.map(order => 
-                order.items?.map(item => `
-                  <div class="item">
-                    <div class="item-row">
-                      <span class="item-name">${item.name}</span>
-                      <span class="item-price">฿${Math.round(item.price * item.qty)}</span>
-                    </div>
-                    <div class="item-detail">
-                      ${item.qty} x ฿${Math.round(item.price)}
-                    </div>
-                  </div>
-                `).join('')
-              ).join('')}
-            </div>
-            
-            <div class="total-section">
-              <div class="total">
-                <span>TOTAL:</span>
-                <span>฿${Math.round(table.total)}</span>
+          <div class="header">
+            <div class="restaurant-name">RESTAURANT</div>
+            <div class="date">${currentDate}</div>
+          </div>
+          
+          <div class="table-info">TABLE ${table.tableId}</div>
+          
+          <div class="items">
+            ${table.orders
+              ?.map(
+                (order) =>
+                  order.items
+                    ?.map(
+                      (item) => `
+              <div class="item">
+                <span class="item-name">${item.name}</span>
+                <span class="item-qty">x${item.qty}</span>
+                <span class="item-price">฿${Math.round(item.price * item.qty)}</span>
               </div>
-            </div>
-            
-            <div class="footer">
-              <div>Thank you!</div>
-              <div>Please come again</div>
-            </div>
+            `
+                    )
+                    .join("") || ""
+              )
+              .join("") || ""}
+          </div>
+          
+          <div class="total">
+            <span>TOTAL:</span>
+            <span>฿${Math.round(table.total)}</span>
+          </div>
+          
+          <div class="footer">
+            Thank you for dining with us!<br>
+            Please come again
           </div>
         </body>
       </html>
-    `;
-    
-    printWindow.document.write(receiptHTML);
+    `);
+
     printWindow.document.close();
+    printWindow.focus();
     
-    // Wait for content to load then print
-    printWindow.onload = function() {
+    // Automatically trigger print dialog after a short delay
+    setTimeout(() => {
       printWindow.print();
-    };
+    }, 250);
   };
 
   return (
@@ -338,7 +302,7 @@ function AdminView() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 w-full md:w-auto">
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
               <button
                 onClick={() => navigate("/admin/create-menu")}
                 className="w-full md:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 px-4 md:px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
@@ -414,9 +378,11 @@ function AdminView() {
                         {table.orders?.length || 0} order(s)
                       </p>
                     </div>
-                    <div className="bg-green-500 text-white rounded-full p-2 cursor-pointer hover:bg-green-600 transition-colors"
-                         onClick={() => handlePrintReceipt(table)}
-                         title="Print Receipt">
+                    <button
+                      onClick={() => handlePrintReceipt(table)}
+                      className="bg-green-500 hover:bg-green-600 text-white rounded-full p-2 transition-colors cursor-pointer"
+                      title="Print Receipt"
+                    >
                       <svg
                         className="w-6 h-6"
                         fill="none"
@@ -430,7 +396,7 @@ function AdminView() {
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                         />
                       </svg>
-                    </div>
+                    </button>
                   </div>
 
                   {/* Order Items Details */}
@@ -471,7 +437,7 @@ function AdminView() {
                     </div>
                   </div>
 
-                  {/* Total and Clear Button */}
+                  {/* Total and Action Buttons */}
                   <div className="pt-4 border-t-2 border-green-200">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-lg font-semibold text-gray-700">
@@ -481,25 +447,46 @@ function AdminView() {
                         ฿{Math.round(table.total)}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleClearBill(table.tableId)}
-                      className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handlePrintReceipt(table)}
+                        className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span>Mark as Paid & Clear</span>
-                    </button>
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                          />
+                        </svg>
+                        <span>Print Receipt</span>
+                      </button>
+                      <button
+                        onClick={() => handleClearBill(table.tableId)}
+                        className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span>Mark as Paid & Clear</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

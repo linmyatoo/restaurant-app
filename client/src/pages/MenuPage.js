@@ -19,7 +19,8 @@ function MenuPage() {
     }
     socket.emit("customer:joinTable", tableId);
 
-    fetch(`${SERVER_URL}/api/menu`)
+    // Fetch only active (non-suspended) menu items for customers
+    fetch(`${SERVER_URL}/api/menu/active`)
       .then((res) => res.json())
       .then((data) => setMenu(data))
       .catch((err) => console.error("Failed to fetch menu:", err));
@@ -34,6 +35,7 @@ function MenuPage() {
       const existingItem = prevCart.find(
         (cartItem) => cartItem.id === item._id
       );
+      
       let updatedCart;
       if (existingItem) {
         updatedCart = prevCart.map((cartItem) =>
