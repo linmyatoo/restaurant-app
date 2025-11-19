@@ -10,6 +10,7 @@ function CustomerView() {
   const [cart, setCart] = useState([]);
   const [bill, setBill] = useState(0);
   const [orderStatus, setOrderStatus] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // --- NEW: Helper function to reset the table ---
   const resetTable = () => {
@@ -27,10 +28,17 @@ function CustomerView() {
     }
     socket.emit("customer:joinTable", tableId);
 
+    setLoading(true);
     fetch(`${SERVER_URL}/api/menu`)
       .then((res) => res.json())
-      .then((data) => setMenu(data))
-      .catch((err) => console.error("Failed to fetch menu:", err));
+      .then((data) => {
+        setMenu(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch menu:", err);
+        setLoading(false);
+      });
 
     // --- UPDATED: Listen for events ---
 
@@ -121,47 +129,62 @@ function CustomerView() {
           {/* Menu Section */}
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Our Menu</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {menu.map((item) => (
-                <div
-                  key={item._id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-1"
-                >
-                  {item.photoUrl && (
-                    <div className="relative h-48 bg-gray-200">
-                      <img
-                        src={item.photoUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                        ฿{Math.round(item.price)}
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500 mb-4"></div>
+                <p className="text-gray-600 text-lg">Loading menu...</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  This may take 30-60 seconds if the server is waking up
+                </p>
+              </div>
+            ) : menu.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div className="text-6xl mb-4">🍽️</div>
+                <p className="text-gray-400 text-xl">No menu items available</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {menu.map((item) => (
+                  <div
+                    key={item._id}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-1"
+                  >
+                    {item.photoUrl && (
+                      <div className="relative h-48 bg-gray-200">
+                        <img
+                          src={item.photoUrl}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          ฿{Math.round(item.price)}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-800">
-                          {item.name}
-                        </h3>
-                        {!item.photoUrl && (
-                          <p className="text-orange-600 font-semibold mt-1">
-                            ฿{Math.round(item.price)}
-                          </p>
-                        )}
+                    )}
+                    <div className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-800">
+                            {item.name}
+                          </h3>
+                          {!item.photoUrl && (
+                            <p className="text-orange-600 font-semibold mt-1">
+                              ฿{Math.round(item.price)}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="ml-3 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
+                        >
+                          + Add
+                        </button>
                       </div>
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="ml-3 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"
-                      >
-                        + Add
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Order Summary Section */}

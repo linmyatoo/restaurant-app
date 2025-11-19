@@ -7,6 +7,7 @@ const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 function KitchenView() {
   const { kitchenId } = useParams();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // 1. Connect and join room
@@ -18,6 +19,7 @@ function KitchenView() {
 
     // === THIS IS THE FIX ===
     // 2. Fetch all pending orders for this kitchen on load
+    setLoading(true);
     fetch(`${SERVER_URL}/api/orders/kitchen/${kitchenId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -26,8 +28,12 @@ function KitchenView() {
           data
         );
         setOrders(data); // Set the initial state
+        setLoading(false);
       })
-      .catch((err) => console.error("Error fetching kitchen orders:", err));
+      .catch((err) => {
+        console.error("Error fetching kitchen orders:", err);
+        setLoading(false);
+      });
     // === END OF FIX ===
 
     // 3. Listen for NEW orders
@@ -99,7 +105,15 @@ function KitchenView() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {orders.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500 mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading kitchen orders...</p>
+            <p className="text-gray-400 text-sm mt-2">
+              This may take 30-60 seconds if the server is waking up
+            </p>
+          </div>
+        ) : orders.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">😴</div>
             <p className="text-gray-400 text-xl">No pending orders</p>

@@ -10,6 +10,7 @@ function MenuPage() {
   const navigate = useNavigate();
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!tableId) return;
@@ -19,10 +20,17 @@ function MenuPage() {
     }
     socket.emit("customer:joinTable", tableId);
 
+    setLoading(true);
     fetch(`${SERVER_URL}/api/menu`)
       .then((res) => res.json())
-      .then((data) => setMenu(data))
-      .catch((err) => console.error("Failed to fetch menu:", err));
+      .then((data) => {
+        setMenu(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch menu:", err);
+        setLoading(false);
+      });
 
     return () => {
       socket.emit("customer:leaveTable", tableId);
@@ -121,47 +129,62 @@ function MenuPage() {
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:mb-6">
           Our Menu
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {menu.map((item) => (
-            <div
-              key={item._id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              {item.photoUrl && (
-                <div className="relative h-40 md:h-48 bg-gray-200">
-                  <img
-                    src={item.photoUrl}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                    ฿{Math.round(item.price)}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500 mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading menu...</p>
+            <p className="text-gray-400 text-sm mt-2">
+              This may take 30-60 seconds if the server is waking up
+            </p>
+          </div>
+        ) : menu.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div className="text-6xl mb-4">🍽️</div>
+            <p className="text-gray-400 text-xl">No menu items available</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {menu.map((item) => (
+              <div
+                key={item._id}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                {item.photoUrl && (
+                  <div className="relative h-40 md:h-48 bg-gray-200">
+                    <img
+                      src={item.photoUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                      ฿{Math.round(item.price)}
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className="p-3 md:p-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <h3 className="text-base md:text-lg font-bold text-gray-800">
-                      {item.name}
-                    </h3>
-                    {!item.photoUrl && (
-                      <p className="text-orange-600 font-semibold mt-1">
-                        ฿{Math.round(item.price)}
-                      </p>
-                    )}
+                )}
+                <div className="p-3 md:p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      <h3 className="text-base md:text-lg font-bold text-gray-800">
+                        {item.name}
+                      </h3>
+                      {!item.photoUrl && (
+                        <p className="text-orange-600 font-semibold mt-1">
+                          ฿{Math.round(item.price)}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="ml-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-3 md:px-4 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg text-sm md:text-base"
+                    >
+                      + Add
+                    </button>
                   </div>
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="ml-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-3 md:px-4 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg text-sm md:text-base"
-                  >
-                    + Add
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Mobile Navigation */}
