@@ -10,6 +10,8 @@ function CustomerView() {
   const [cart, setCart] = useState([]);
   const [bill, setBill] = useState(0);
   const [orderStatus, setOrderStatus] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [billItems, setBillItems] = useState([]);
 
   // --- NEW: Helper function to reset the table ---
   const resetTable = () => {

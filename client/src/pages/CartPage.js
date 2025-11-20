@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "../services/socket";
 import MobileNav from "../components/MobileNav";
 
+const SERVER_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+
 function CartPage() {
   const { tableId } = useParams();
   const navigate = useNavigate();
@@ -20,6 +22,20 @@ function CartPage() {
     alert("Thank you for your payment! Your table has been cleared.");
   };
 
+  // Fetch existing orders for this table on page load
+  const fetchTableOrders = async () => {
+    try {
+      const res = await fetch(`${SERVER_URL}/api/orders/table/${tableId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setBill(data.total);
+        setOrderedItems(data.items);
+      }
+    } catch (err) {
+      console.error("Error fetching table orders:", err);
+    }
+  };
+
   useEffect(() => {
     if (!tableId) return;
 
@@ -34,8 +50,13 @@ function CartPage() {
       setCart(JSON.parse(savedCart));
     }
 
+    // Fetch existing orders to show in bill
+    fetchTableOrders();
+
     const onUpdateBill = (data) => {
       setBill(data.total);
+      // Refresh bill items when bill updates
+      fetchTableOrders();
     };
 
     const onOrderStatusUpdate = (data) => {
@@ -75,7 +96,7 @@ function CartPage() {
 
   const handlePlaceOrder = () => {
     if (cart.length === 0) return;
-    setOrderedItems([...cart]); // Save ordered items before clearing cart
+    // Don't set orderedItems here - let fetchTableOrders handle it
     socket.emit("customer:placeOrder", { tableId, items: cart });
     setCart([]);
     sessionStorage.removeItem(`cart_${tableId}`);
